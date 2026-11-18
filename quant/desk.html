@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quant / Practice desk</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f3ed;color:#182e2a;font:16px/1.55 "DM Sans","Segoe UI",sans-serif}header{background:#183c35;color:white;display:flex;align-items:center;justify-content:space-between;padding:18px max(5vw,20px)}header strong{font:700 21px Georgia,serif}header strong i{color:#abd5a4;margin-right:9px}nav{display:flex;gap:8px}button,select,textarea{font:inherit;color:inherit}button{cursor:pointer}nav button{border:1px solid transparent;background:transparent;color:#dce9df;border-radius:5px;padding:6px 12px}nav button.active{background:#315449;border-color:#527266;color:white}main{max-width:1160px;padding:35px 24px;margin:auto}h1,h2,h3,p{margin:0}h1,h2{font-family:"Instrument Serif",Georgia,serif;font-weight:500;line-height:1.2}h1{font-size:clamp(36px,5vw,62px);letter-spacing:-2px}h2{font-size:clamp(25px,3vw,36px);letter-spacing:-.8px}section.title{margin-bottom:26px;border-bottom:1px solid #cad2c5;padding-bottom:18px}.layout{display:grid;grid-template-columns: minmax(0,2.5fr) minmax(220px,1fr);gap:24px;align-items:start}.panel,aside{background:#fffefa;border:1px solid #d6dacf;border-radius:10px;padding:clamp(18px,3vw,36px)}.meta{color:#476554;font:600 12px/1.5 "IBM Plex Mono",Consolas,monospace;letter-spacing:.07em;text-transform:uppercase;margin-bottom:16px}.options{display:grid;gap:9px;margin:23px 0}.choice,.row{border:1px solid #cbd3c8;background:#fbfcf7;border-radius:5px;text-align:left;padding:12px 15px;width:100%;display:flex;align-items:center;gap:13px}.choice:hover,.row:hover{background:#edf4e7}.choice[aria-pressed=true]{background:#e3f0de;border:2px solid #43704f;padding:11px 14px}.letter{font:13px Consolas,monospace;color:#476554;border:1px solid #c5d2c6;border-radius:4px;padding:3px 7px}.primary,.secondary{border:1px solid #234b3f;border-radius:5px;padding:9px 16px;font-weight:600}.primary{background:#214d40;color:white}.secondary{background:transparent}.primary:disabled{opacity:.48;cursor:default}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}aside{padding:22px;background:#eaf0e5}aside h3{font:24px Georgia,serif;margin-bottom:15px}label{display:block;font-weight:600;margin:12px 0 5px}select,textarea{width:100%;padding:9px;border:1px solid #becabb;border-radius:5px;background:#fffefa}textarea{min-height:125px}.score{border-top:1px solid #c5cfbf;margin-top:22px;padding-top:12px}.score p{display:flex;justify-content:space-between;margin:6px 0}.feedback{background:#edf3e7;border-left:3px solid #588059;padding:15px;margin:18px 0}.feedback p{margin-top:5px}.row{margin-top:9px;display:block}.row small{display:block;color:#516658}.empty{margin:14px 0;color:#4a6254}#error{color:#993d22}button:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #ba792b;outline-offset:2px}@media(max-width:720px){.layout{grid-template-columns:1fr}main{padding:20px 14px}header{padding:12px}nav button{padding:6px}.panel{padding:20px}}
+</style>
+<header><strong><i>∑</i> Quant desk</strong><nav aria-label="Workspace"><button id="practice">Practice</button><button id="review">Review <span id="badge"></span></button></nav></header>
+<main><section class="title"><h1 id="title">Practice desk</h1></section><p role="alert" id="error"></p><div class="layout"><article class="panel" id="panel"></article><aside><h3>Session settings</h3><label for="level">Difficulty</label><select id="level"><option value="">All difficulties</option><option>Foundation</option><option>Intermediate</option><option>Advanced</option></select><label for="format">Format</label><select id="format"><option value="">Mixed</option><option value="mcq">Multiple choice</option><option value="open">Open response</option></select><label for="topic">Topic</label><select id="topic"><option value="">All topics</option></select><div class="score"><h3>Your record</h3><p>Attempts <b id="total">0</b></p><p>Correct, incl. self-grades <b id="accuracy">—</b></p><p>To revisit <b id="due">0</b></p></div></aside></div></main>
+<script>
+const el=id=>document.getElementById(id);
+const panel=el('panel');
+let data, current, mode, seed, token, selected, view='practice', seen=new Set(), queue=[], saving=false;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nice=s=>s[0].toUpperCase()+s.slice(1);
+const label=m=>m==='mcq'?'Multiple choice':'Open response';
+const promptOf=(c,m)=>m==='mcq'?c.question:c.discussion;
+function shuffle(items){for(let i=items.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[items[i],items[j]]=[items[j],items[i]]}return items}
+async function refresh(){
+ const r=await fetch('/api');if(!r.ok)throw Error('Could not load practice history.');data=await r.json();
+ const tries=data.history.reduce((s,x)=>s+x.tries,0),misses=data.history.reduce((s,x)=>s+x.misses,0);
+ queue=data.history.filter(x=>!x.correct);el('total').textContent=tries;el('accuracy').textContent=tries?Math.round(100*(tries-misses)/tries)+'%':'—';
+ el('due').textContent=el('badge').textContent=queue.length;
+}
+function matches(c,m){return (!el('level').value||el('level').value.toLowerCase()===c.level)&&(!el('format').value||el('format').value===m)&&(!el('topic').value||el('topic').value===c.topic)}
+function navigate(dest){if(saving)return;view=dest;el('title').textContent=view==='practice'?'Practice desk':'Review queue';for(const v of ['practice','review'])el(v).classList.toggle('active',v===view);if(view==='review')return review();next()}
+function review(){
+ const rows=queue.filter(x=>matches(x.card,x.mode));
+ panel.innerHTML='<h2>Missed questions</h2><p class="empty">'+(rows.length?'Choose a question to retry. A correct retry clears it from this queue.':queue.length?'No missed questions match these filters.':'Your queue is clear. Questions you miss will appear here.')+'</p>';
+ rows.forEach(x=>{const b=document.createElement('button');b.className='row';b.innerHTML='<small>'+esc(nice(x.card.level)+' · '+label(x.mode)+' · Missed '+x.misses+'×')+'</small>'+esc(promptOf(x.card,x.mode));b.onclick=()=>show(x.card,x.mode,x.seed);panel.append(b)})
+}
+function next(){
+ const pool=data.cards.flatMap(c=>['mcq','open'].filter(m=>matches(c,m)).map(m=>({c,m,key:c.topic+'-'+m})));
+ if(!pool.length){panel.innerHTML='<h2>No matching questions</h2><p class="empty">Choose another topic or difficulty.</p>';return}
+ let fresh=pool.filter(x=>!seen.has(x.key));if(!fresh.length){pool.forEach(x=>seen.delete(x.key));fresh=pool}
+ const x=shuffle(fresh)[0];seen.add(x.key);show(x.c,x.m,data.seed)
+}
+function show(c,m,s){
+ current=c;mode=m;seed=s;token=crypto.randomUUID();selected=null;el('error').textContent='';
+ panel.innerHTML='<p class="meta">'+esc(nice(c.level)+' / '+c.topic+' / '+label(m))+'</p><h2>'+esc(promptOf(c,m))+'</h2><div id="input"></div><div id="feedback" aria-live="polite"></div><div class="actions" id="actions"></div>';
+ if(m==='mcq'){
+  el('input').className='options';shuffle([...c.choices]).forEach((opt,i)=>{const b=document.createElement('button');b.className='choice';b.setAttribute('aria-pressed','false');b.innerHTML='<span class="letter">'+String.fromCharCode(65+i)+'</span>'+esc(opt);b.onclick=()=>{selected=opt;document.querySelectorAll('.choice').forEach(v=>v.setAttribute('aria-pressed',String(v===b)));el('check').disabled=false};el('input').append(b)});
+  el('actions').innerHTML='<button class="primary" id="check" disabled>Check answer</button><button class="secondary" id="hint">Hint</button>';el('check').onclick=()=>submit(selected);el('hint').onclick=()=>feedback('Hint',esc(c.hint));
+ }else{
+  el('input').innerHTML='<label for="reason">Your reasoning</label><textarea id="reason"></textarea>';
+  el('actions').innerHTML='<button class="primary" id="check" disabled>Compare reasoning</button>';el('reason').oninput=()=>el('check').disabled=!el('reason').value.trim();
+  el('check').onclick=()=>{el('reason').readOnly=true;feedback('Self-grade your response',c.rubric.map(x=>'<p>'+esc(x)+'</p>').join(''));el('actions').innerHTML='<button class="primary" id="pass">Covered both points</button><button class="secondary" id="miss">Needs practice</button>';el('pass').onclick=()=>submit(true);el('miss').onclick=()=>submit(false)}
+ }
+}
+function feedback(title,body){el('feedback').innerHTML='<div class="feedback"><b>'+title+'</b><p>'+body+'</p></div>'}
+async function submit(answer){
+ if(saving)return;saving=true;document.querySelector('main').inert=true;
+ try{
+ const r=await fetch('/attempt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,topic:current.topic,mode,seed,answer})});
+ if(!r.ok)throw Error();const result=await r.json();await refresh();el('error').textContent='';
+ const explanation=mode==='mcq'?esc(current.solution):current.rubric.map(esc).join(' ');
+ feedback(result.correct?'Correct · recorded':'Added to your review queue',explanation);
+ document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
+ el('actions').innerHTML='<button class="primary" id="next"></button>';el('next').textContent=view==='review'?'Back to review queue':'Next question →';el('next').onclick=()=>navigate(view)
+ }catch{el('error').textContent='Could not confirm the save. Check the local server and retry your answer.'}finally{saving=false;document.querySelector('main').inert=false}
+}
+async function init(){
+ await refresh();for(const c of [...data.cards].sort((a,b)=>a.topic.localeCompare(b.topic)))el('topic').add(new Option(nice(c.topic),c.topic));
+ for(const id of ['level','format','topic'])el(id).onchange=()=>navigate(view);
+ for(const v of ['review','practice'])el(v).onclick=()=>navigate(v);
+ navigate('practice')
+}
+init().catch(()=>el('error').textContent='Could not load the desk. Relaunch the local practice server.')
+</script></html>

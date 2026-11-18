@@ -1,16 +1,19 @@
 # Quant interview practice
 
-On Windows, double-click **Start practice.cmd** for a six-question mixed round. The trainer runs offline with Python 3.8 or newer. Enter a letter for a multiple-choice question or type your reasoning for an open question. After an open answer, compare it with the two rubric points and score yourself. Each round ends with separate scores and topics to revisit.
+Double-click **Start practice desk.cmd** for the browser interface, or run `python desk.py`. Set a difficulty, format and topic. Select **Review** to retry the exact prompts you missed. A correct retry clears the prompt from the queue and preserves earlier attempts in your accuracy. Open responses use a two-point self-grade. The desk runs on localhost and shares a SQLite tracker with the terminal. On Windows the database lives in `%LOCALAPPDATA%/QuantPractice/progress.sqlite3`. Keeping this file preserves your progress across restarts. Close the server window to stop the desk.
+
+For the terminal, double-click **Start practice.cmd** for a six-question mixed round. The trainer runs offline with Python 3.9 or newer. Enter a letter for a multiple-choice question or type your reasoning for an open question. After an open answer, compare it with the two rubric points and score yourself. Each round ends with separate scores and topics to revisit.
 
 From this directory:
 
 ```powershell
 python practice.py --mode mixed --count 8
 python practice.py --mode mcq --topic execution --count 3
-python practice.py --mode open --count 4
+python practice.py --mode open --level advanced --count 4
+python practice.py --review --count 10
 ```
 
-Each of the eight topics has a calculation or decision question and an open interview prompt. Several calculations draw fresh numbers each round. Use `--seed 17` to replay a session, `hint` during a multiple-choice question, or `quit` to finish early.
+Each of the 22 topics has a calculation or decision question and an open interview prompt. Several calculations draw fresh numbers each round. Use `--seed 17` to replay a session, `hint` during a multiple-choice question, or `quit` to finish early.
 
 ## Worked notebooks
 

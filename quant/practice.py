@@ -2,6 +2,10 @@
 import argparse
 import random
 from dataclasses import dataclass
+from uuid import uuid4
+
+from bank import ROWS
+from progress import history, record
 
 
 @dataclass
@@ -13,6 +17,7 @@ class Drill:
     solution: str
     discussion: str
     rubric: list[str]
+    level: str = 'foundation'
 
 
 def build_deck(rng):
@@ -24,7 +29,7 @@ def build_deck(rng):
     sigma = rng.choice([10, 14, 18])
     days = rng.choice([25, 100, 400])
     bounce = rng.choice([10, 20, 30])
-    return [
+    cards = [
         Drill("fills", f"Two orders each have an independent {p:.0%} chance of filling. What is the chance at least one fills?",
               [f"{x:.0%}" for x in (1-(1-p)**2, p*p, 2*p, (1-p)**2)],
               "Count the outcome where neither order fills.",
@@ -83,6 +88,17 @@ def build_deck(rng):
     ]
 
 
+    for card in cards:
+        if card.topic in ("inference", "signals", "backtesting"):
+            card.level = "intermediate"
+    cards.extend(Drill(topic, *fields, level=level) for level, topic, *fields in ROWS)
+    return cards
+
+
+def get_card(topic, seed):
+    return next(card for card in build_deck(random.Random(seed)) if card.topic == topic)
+
+
 def ask(card, mode, rng):
     print(f"\n[{card.topic}]")
     if mode == "open":
@@ -122,6 +138,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=["mixed", "mcq", "open"], default="mixed")
     parser.add_argument("--topic", choices=[c.topic for c in build_deck(random.Random(0))])
+    parser.add_argument("--level", choices=["foundation", "intermediate", "advanced"])
+    parser.add_argument("--review", action="store_true", help="retry currently missed prompts")
     parser.add_argument("--count", type=int, default=6)
     parser.add_argument("--seed", type=int, help="replay a session")
     args = parser.parse_args()
@@ -132,15 +150,34 @@ def main():
     deck = []
     print("Quant interview practice | Type quit to end a round.")
     try:
+        missed = [(topic, mode, row["seed"]) for (topic, mode), row in history().items()
+                  if not row["correct"] and (args.mode == "mixed" or args.mode == mode)
+                  and (not args.topic or args.topic == topic)
+                  and (not args.level or get_card(topic, row["seed"]).level == args.level)]
+        rng.shuffle(missed)
         for i in range(args.count):
-            if not deck:
-                deck = [c for c in build_deck(rng) if not args.topic or c.topic == args.topic]
-                rng.shuffle(deck)
-            card = deck.pop()
-            mode = ("mcq", "open")[i % 2] if args.mode == "mixed" else args.mode
+            if args.review:
+                if not missed:
+                    print("No more missed questions matching these filters.")
+                    break
+                topic, mode, seed = missed.pop()
+                card = get_card(topic, seed)
+            else:
+                if not deck:
+                    seed = rng.randrange(2**32)
+                    deck = [c for c in build_deck(random.Random(seed))
+                            if (not args.topic or c.topic == args.topic)
+                            and (not args.level or c.level == args.level)]
+                    rng.shuffle(deck)
+                if not deck:
+                    print("No questions match these filters.")
+                    break
+                card = deck.pop()
+                mode = ("mcq", "open")[i % 2] if args.mode == "mixed" else args.mode
             result = ask(card, mode, rng)
             if result is None:
                 break
+            record(uuid4().hex, card.topic, mode, seed, result)
             results.append((mode, card.topic, result))
     except (EOFError, KeyboardInterrupt):
         pass
