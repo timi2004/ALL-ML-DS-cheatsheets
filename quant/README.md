@@ -15,6 +15,10 @@ python practice.py --review --count 10
 
 Each of the 22 topics has a calculation or decision question and an open interview prompt. Several calculations draw fresh numbers each round. Use `--seed 17` to replay a session, `hint` during a multiple-choice question, or `quit` to finish early.
 
+## Concepts
+
+Open **Concepts** in the browser desk for nine lessons across the three difficulty levels. Choose a scenario to recalculate each worked example, expand the follow-up to check your reasoning, or select **Practice this concept** to answer a scored question on the same topic.
+
 ## Worked notebooks
 
 1. [Probability and edge](01_probability_and_edge.ipynb) asks when a detector's alert is worth trading. Change the jump rate and watch both precision and expected profit change. [Run in Colab](https://colab.research.google.com/github/timi2004/ALL-ML-DS-cheatsheets/blob/quant-practice/quant/01_probability_and_edge.ipynb)

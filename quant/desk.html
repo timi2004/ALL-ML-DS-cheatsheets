@@ -3,9 +3,10 @@
 <title>Quant / Practice desk</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f4f3ed;color:#182e2a;font:16px/1.55 "DM Sans","Segoe UI",sans-serif}header{background:#183c35;color:white;display:flex;align-items:center;justify-content:space-between;padding:18px max(5vw,20px)}header strong{font:700 21px Georgia,serif}header strong i{color:#abd5a4;margin-right:9px}nav{display:flex;gap:8px}button,select,textarea{font:inherit;color:inherit}button{cursor:pointer}nav button{border:1px solid transparent;background:transparent;color:#dce9df;border-radius:5px;padding:6px 12px}nav button.active{background:#315449;border-color:#527266;color:white}main{max-width:1160px;padding:35px 24px;margin:auto}h1,h2,h3,p{margin:0}h1,h2{font-family:"Instrument Serif",Georgia,serif;font-weight:500;line-height:1.2}h1{font-size:clamp(36px,5vw,62px);letter-spacing:-2px}h2{font-size:clamp(25px,3vw,36px);letter-spacing:-.8px}section.title{margin-bottom:26px;border-bottom:1px solid #cad2c5;padding-bottom:18px}.layout{display:grid;grid-template-columns: minmax(0,2.5fr) minmax(220px,1fr);gap:24px;align-items:start}.panel,aside{background:#fffefa;border:1px solid #d6dacf;border-radius:10px;padding:clamp(18px,3vw,36px)}.meta{color:#476554;font:600 12px/1.5 "IBM Plex Mono",Consolas,monospace;letter-spacing:.07em;text-transform:uppercase;margin-bottom:16px}.options{display:grid;gap:9px;margin:23px 0}.choice,.row{border:1px solid #cbd3c8;background:#fbfcf7;border-radius:5px;text-align:left;padding:12px 15px;width:100%;display:flex;align-items:center;gap:13px}.choice:hover,.row:hover{background:#edf4e7}.choice[aria-pressed=true]{background:#e3f0de;border:2px solid #43704f;padding:11px 14px}.letter{font:13px Consolas,monospace;color:#476554;border:1px solid #c5d2c6;border-radius:4px;padding:3px 7px}.primary,.secondary{border:1px solid #234b3f;border-radius:5px;padding:9px 16px;font-weight:600}.primary{background:#214d40;color:white}.secondary{background:transparent}.primary:disabled{opacity:.48;cursor:default}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}aside{padding:22px;background:#eaf0e5}aside h3{font:24px Georgia,serif;margin-bottom:15px}label{display:block;font-weight:600;margin:12px 0 5px}select,textarea{width:100%;padding:9px;border:1px solid #becabb;border-radius:5px;background:#fffefa}textarea{min-height:125px}.score{border-top:1px solid #c5cfbf;margin-top:22px;padding-top:12px}.score p{display:flex;justify-content:space-between;margin:6px 0}.feedback{background:#edf3e7;border-left:3px solid #588059;padding:15px;margin:18px 0}.feedback p{margin-top:5px}.row{margin-top:9px;display:block}.row small{display:block;color:#516658}.empty{margin:14px 0;color:#4a6254}#error{color:#993d22}button:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #ba792b;outline-offset:2px}@media(max-width:720px){.layout{grid-template-columns:1fr}main{padding:20px 14px}header{padding:12px}nav button{padding:6px}.panel{padding:20px}}
+.lesson-intro{margin:15px 0 24px;color:#435b50}.panel h3{font:23px Georgia,serif;margin:18px 0 8px}#scenario{width:auto;min-width:95px}#steps{padding-left:26px}#steps li{padding:5px 0 5px 6px}details{border-top:1px solid #d0d8ca;padding-top:14px}summary{cursor:pointer;font-weight:600}details p{margin-top:8px}@media(max-width:720px){body.learning aside{grid-row:1}body.learning .score{display:none}header{flex-wrap:wrap;gap:6px}}
 </style>
-<header><strong><i>∑</i> Quant desk</strong><nav aria-label="Workspace"><button id="practice">Practice</button><button id="review">Review <span id="badge"></span></button></nav></header>
-<main><section class="title"><h1 id="title">Practice desk</h1></section><p role="alert" id="error"></p><div class="layout"><article class="panel" id="panel"></article><aside><h3>Session settings</h3><label for="level">Difficulty</label><select id="level"><option value="">All difficulties</option><option>Foundation</option><option>Intermediate</option><option>Advanced</option></select><label for="format">Format</label><select id="format"><option value="">Mixed</option><option value="mcq">Multiple choice</option><option value="open">Open response</option></select><label for="topic">Topic</label><select id="topic"><option value="">All topics</option></select><div class="score"><h3>Your record</h3><p>Attempts <b id="total">0</b></p><p>Correct, incl. self-grades <b id="accuracy">—</b></p><p>To revisit <b id="due">0</b></p></div></aside></div></main>
+<header><strong><i>∑</i> Quant desk</strong><nav aria-label="Workspace"><button id="practice">Practice</button><button id="concepts">Concepts</button><button id="review">Review <span id="badge"></span></button></nav></header>
+<main><section class="title"><h1 id="title">Practice desk</h1></section><p role="alert" id="error"></p><div class="layout"><article class="panel" id="panel"></article><aside><div id="library" hidden><h3>Concept library</h3><label for="lessons">Choose a lesson</label><select id="lessons"></select></div><div id="filters"><h3>Session settings</h3><label for="level">Difficulty</label><select id="level"><option value="">All difficulties</option><option>Foundation</option><option>Intermediate</option><option>Advanced</option></select><label for="format">Format</label><select id="format"><option value="">Mixed</option><option value="mcq">Multiple choice</option><option value="open">Open response</option></select><label for="topic">Topic</label><select id="topic"><option value="">All topics</option></select></div><div class="score"><h3>Your record</h3><p>Attempts <b id="total">0</b></p><p>Correct, incl. self-grades <b id="accuracy">—</b></p><p>To revisit <b id="due">0</b></p></div></aside></div></main>
 <script>
 const el=id=>document.getElementById(id);
 const panel=el('panel');
@@ -22,7 +23,120 @@ async function refresh(){
  el('due').textContent=el('badge').textContent=queue.length;
 }
 function matches(c,m){return (!el('level').value||el('level').value.toLowerCase()===c.level)&&(!el('format').value||el('format').value===m)&&(!el('topic').value||el('topic').value===c.topic)}
-function navigate(dest){if(saving)return;view=dest;el('title').textContent=view==='practice'?'Practice desk':'Review queue';for(const v of ['practice','review'])el(v).classList.toggle('active',v===view);if(view==='review')return review();next()}
+const lessons = [
+ {
+  topic:'edge', title:'Expected value after costs',
+  idea:'A trading edge depends on how much you make and lose as well as how often you win. Express each outcome in dollars per trade before averaging.',
+  setup:'A trade earns $8 on a win and loses $4 on a loss. Every trade costs $1 in fees. Predict the win rate where the edge changes sign.',
+  input:'Winning trades per 100', values:[25,40,50,60,75], start:3,
+  solve(w){const gross=8*w-4*(100-w);return [
+   'Imagine 100 trades. The '+w+' winners earn $'+8*w+' in total.',
+   'The '+(100-w)+' losses cost $'+4*(100-w)+'. Gross P&L is $'+gross+'.',
+   'Subtract $100 in fees, then divide by 100 trades: ('+gross+' − 100) / 100 = $'+((gross-100)/100).toFixed(2)+' per trade.']},
+  check:'Where is break-even exactly?',answer:'Solve 8p − 4(1 − p) − 1 = 0. The required win rate is 5/12, about 41.7%.'
+ },
+ {
+  topic:'execution', title:'Crossing the spread',
+  idea:'The midpoint measures a move in quoted value. A buyer who crosses the spread pays the ask, then receives the bid when selling.',
+  setup:'The midpoint moves from $50.00 to $50.08. Buy and sell 100 shares at the displayed quotes. The spread stays constant and fees total $0.01 per share for the round trip.',
+  input:'Full spread in cents', values:[2,4,6,7,10],start:2,
+  solve(s){return ['Buy at the initial ask: $50.00 + $'+(s/200).toFixed(3)+' = $'+(50+s/200).toFixed(3)+'.','Sell at the final bid: $50.08 − $'+(s/200).toFixed(3)+' = $'+(50.08-s/200).toFixed(3)+'.','Net per share is 8 − '+s+' − 1 = '+(7-s)+' cents. On 100 shares, net P&L is $'+(7-s).toFixed(2)+'.']},
+  check:'Why does a one-cent increase in the full spread cost one dollar here?',answer:'Each crossing costs another half cent per share. Two crossings across 100 shares add one dollar in cost.'
+ },
+ {
+  topic:'returns',title:'Recovering from a drawdown',
+  idea:'Returns multiply. After a loss, the capital available to earn the recovery has shrunk.',
+  setup:'Start with $100. After a drawdown, what percentage gain returns the account to $100?',
+  input:'Drawdown (%)',values:[10,20,25,40,50],start:1,
+  solve(d){return ['After losing '+d+'%, the account holds $'+(100-d)+'.','The recovery must earn $'+d+' on that remaining $'+(100-d)+'.','Required gain = '+d+' / '+(100-d)+' = '+(100*d/(100-d)).toFixed(2)+'%.']},
+  check:'What happens after a 50% fall followed by a 50% rise?',answer:'The account falls to $50 and then rises to $75. Recovering fully from $50 requires a 100% gain.'
+ },
+ {
+  topic:'signals', title:'Updating a probability after a signal',
+  idea:'An alert changes the group you are reasoning about. Among all flagged sessions, count the ones that actually contained a jump.',
+  setup:'In 1,000 sessions, a detector catches 80% of jumps and flags 20% of quiet sessions. Predict how rare jumps affect the reliability of an alert.',
+  input:'Sessions with jumps (%)',values:[5,10,20,50],start:1,
+  solve(p){const hits=8*p, falseFlags=200-2*p;return ['Of '+10*p+' jump sessions, 80% are flagged: '+hits+' true alerts.','Of '+(1000-10*p)+' quiet sessions, 20% are flagged: '+falseFlags+' false alerts.','Given an alert, jump probability = '+hits+' / ('+hits+' + '+falseFlags+') = '+(100*hits/(hits+falseFlags)).toFixed(1)+'%.']},
+  check:'Why can most alerts be false even when the detector catches most jumps?',answer:'Quiet sessions can vastly outnumber jump sessions. A small fraction of a large group can exceed a large fraction of a small group.'
+ },
+ {
+  topic:'portfolios',title:'Diversification and correlation',
+  idea:'Portfolio risk depends on how assets move together. Covariance captures the part of their fluctuations that reinforces or offsets across positions.',
+  setup:'Put half of your capital in each of two assets. Both have 20% annual volatility. Change their return correlation and predict portfolio volatility.',
+  input:'Return correlation',values:[-1,-0.5,0,0.5,1],start:2,
+  solve(r){const v=0.02*(1+r);return ['Each asset contributes 0.5² × 0.20² = 0.01 to variance before covariance.','The cross term is 2 × 0.5 × 0.5 × 0.20 × 0.20 × '+r+' = '+(0.02*r).toFixed(3)+'.','Total variance is '+v.toFixed(3)+'. Take its square root: annual volatility is '+(100*Math.sqrt(v)).toFixed(2)+'%.']},
+  check:'Why does perfect negative correlation give zero volatility in this example?',answer:'The weighted volatilities are equal. Deviations from the two means offset exactly under the assumed correlation of −1.'
+ },
+ {
+  topic:'stopping',title:'Waiting for the first fill',
+  idea:'After a miss, an independent sequence with a fixed fill probability starts the same waiting problem again. This lets you solve for the expected wait.',
+  setup:'Submit one order at a time until one fills. Count the successful order in the total. Assume each submission has the same independent fill probability.',
+  input:'Fill probability (%)',values:[10,20,25,50,100],start:2,
+  solve(p){const q=(100-p)/100;return ['You always submit one order. With probability '+q+', it misses and you still expect E more orders.','Write E = 1 + '+q+' × E. Rearranging gives '+(p/100)+' × E = 1.','Expected submissions = 1 / '+(p/100)+' = '+100/p+'. Expected misses = '+(100/p-1)+'.']},
+  check:'After five consecutive misses, how does the expected additional wait change?',answer:'It stays at 1/p if submissions really are independent with a known fixed p. If the misses suggest conditions changed, the model needs updating.'
+ },
+ {
+  topic:'replication',title:'Pricing a call by replication',
+  idea:'If shares and cash reproduce a contract’s payment in every possible state, their cost gives its no-arbitrage price under frictionless trading.',
+  setup:'A $100 stock ends at $120 or $90 in one period. Interest and dividends are zero. Build a portfolio matching a call at your chosen strike.',
+  input:'Strike price ($)',values:[90,95,100,105,110,115],start:3,
+  solve(k){const up=120-k,d=up/30;return ['The call pays $'+up+' in the up state and $0 in the down state. The stock-price difference is $30.','Hold '+up+'/30 shares and borrow $'+(90*d).toFixed(2)+'. At $90, the shares exactly repay the loan; at $120, the portfolio pays $'+up+'.','Today the shares cost $'+(100*d).toFixed(2)+'. Subtract the borrowing to obtain a call value of $'+(10*d).toFixed(2)+' (rounded).']},
+  check:'Where did the probability of an up move enter?',answer:'The hedge matched payments state by state. No real-world probability estimate was needed.'
+ },
+ {
+  topic:'selection',title:'What a buy order tells a dealer',
+  idea:'Order flow carries information when buyers are more likely to trade in high-value states. A dealer can update fair value after seeing the order direction.',
+  setup:'Fair value is equally likely to be $99 or $101. A buy arrives in 20% of low-value states. Vary the chance of a buy in the high-value state.',
+  input:'Buy probability in high state (%)',values:[20,40,60,80,100],start:3,
+  solve(p){const posterior=p/(p+20);return ['Imagine 200 observations: 100 in each state. Expect '+p+' buys in high states and 20 in low states.','Conditional on a buy, the high-state probability is '+p+' / '+(p+20)+' = '+(100*posterior).toFixed(1)+'%.','Conditional fair value = (101 × '+p+' + 99 × 20) / '+(p+20)+' = $'+(99+2*posterior).toFixed(2)+'.']},
+  check:'When would seeing a buy convey no information?',answer:'When its probability is the same in both states. At 20% in each state the posterior remains one half and conditional fair value stays at $100.'
+ },
+ {
+  topic:'testing',title:'Finding a false edge',
+  idea:'Testing many strategies gives noise many chances to look significant. Count the probability that every test avoids a false positive first.',
+  setup:'Every signal has zero true edge. Each test independently has a 5% false-positive rate. How likely is at least one apparent discovery?',
+  input:'Number of independent tests',values:[1,5,10,20,50],start:3,
+  solve(n){const none=0.95**n;return ['One null signal avoids a false positive with probability 0.95.','All '+n+' tests avoid one with probability 0.95 raised to '+n+' = '+none.toFixed(4)+'.','The complementary event is at least one false positive: 1 − '+none.toFixed(4)+' ≈ '+((1-none)*100).toFixed(1)+'%.']},
+  check:'Would the same calculation apply to 20 copies of an identical signal?',answer:'No. Identical tests give the same outcome. With perfect duplication the chance of any false positive is the single-test rate of 5%.'
+ }
+];
+
+let activeLesson=lessons[0];
+function renderLesson(){
+ const lesson=activeLesson;
+ const card=data.cards.find(c=>c.topic===lesson.topic);
+ panel.innerHTML='<p class="meta">'+esc(nice(card.level))+' / Concept</p><h2>'+esc(lesson.title)+'</h2><p class="lesson-intro">'+esc(lesson.idea)+'</p><h3>Worked example</h3><p>'+esc(lesson.setup)+'</p><label for="scenario">'+esc(lesson.input)+'</label><select id="scenario"></select><ol id="steps" aria-live="polite"></ol><details><summary>'+esc(lesson.check)+'</summary><p>'+esc(lesson.answer)+'</p></details><div class="actions"><button class="primary" id="tryLesson">Practice this concept →</button></div>';
+ const scenario=el('scenario');
+ lesson.values.forEach(value=>scenario.add(new Option(value,value)));
+ scenario.selectedIndex=lesson.start;
+ const solve=()=>el('steps').innerHTML=lesson.solve(Number(scenario.value)).map(step=>'<li>'+esc(step)+'</li>').join('');
+ scenario.onchange=solve;solve();
+ el('tryLesson').onclick=()=>{el('level').value='';el('topic').value=lesson.topic;el('format').value='mcq';navigate('practice')};
+}
+function lessonMenu(){
+ const menu=el('lessons');
+ for(const level of ['foundation','intermediate','advanced']){
+  const group=document.createElement('optgroup');group.label=nice(level);
+  for(const lesson of lessons.filter(l=>data.cards.find(c=>c.topic===l.topic).level===level))group.append(new Option(lesson.title,lesson.topic));
+  menu.append(group);
+ }
+ menu.onchange=()=>{activeLesson=lessons.find(l=>l.topic===menu.value);renderLesson()};
+}
+
+
+function navigate(dest){
+ if(saving)return;
+ view=dest;
+ const learning=view==='concepts';
+ el('filters').hidden=learning;el('library').hidden=!learning;
+ document.body.classList.toggle('learning',learning);
+ el('title').textContent={concepts:'Concepts',practice:'Practice desk',review:'Review queue'}[view];
+ for(const v of ['practice','concepts','review'])el(v).classList.toggle('active',v===view);
+ history.replaceState(null,'','#'+view);
+ if(learning)return renderLesson();
+ if(view==='review')return review();
+ next()
+}
 function review(){
  const rows=queue.filter(x=>matches(x.card,x.mode));
  panel.innerHTML='<h2>Missed questions</h2><p class="empty">'+(rows.length?'Choose a question to retry. A correct retry clears it from this queue.':queue.length?'No missed questions match these filters.':'Your queue is clear. Questions you miss will appear here.')+'</p>';
@@ -61,8 +175,9 @@ async function submit(answer){
 async function init(){
  await refresh();for(const c of [...data.cards].sort((a,b)=>a.topic.localeCompare(b.topic)))el('topic').add(new Option(nice(c.topic),c.topic));
  for(const id of ['level','format','topic'])el(id).onchange=()=>navigate(view);
- for(const v of ['review','practice'])el(v).onclick=()=>navigate(v);
- navigate('practice')
+ lessonMenu();
+ for(const v of ['review','practice','concepts'])el(v).onclick=()=>navigate(v);
+ navigate(['#review','#concepts'].includes(location.hash)?location.hash.slice(1):'practice')
 }
 init().catch(()=>el('error').textContent='Could not load the desk. Relaunch the local practice server.')
 </script></html>
